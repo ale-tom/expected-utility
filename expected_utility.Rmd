@@ -1,0 +1,98 @@
+---
+title: "Decision-making & reasoning"
+subtitle: "<br/> "
+author: 
+institute: "<br/>Alessandro Tomassini | Part IB NHB | 30 April 2021"
+date: 
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    seal: false
+    nature:
+      ratio: '16:9'
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      titleSlideClass: [center, middle]
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+library(xaringanExtra)
+xaringanExtra::use_tile_view()
+xaringanExtra::use_tachyons()
+xaringanExtra::use_panelset()
+xaringanExtra::use_editable()
+xaringanExtra::use_scribble()
+```
+
+## Expected value vs Expected utility
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(plotly)
+U <- function(x,r){
+  U <- r*(1-exp(-x/r))
+  return(U)
+}
+
+
+x <- seq(0,6000, length.out = 1000)
+r <- rev(c(1000,3000,6000,9000,12000,15000,1000000))
+aval <- list()
+
+for(step in 1:7) {
+  aval[[step]] <- list(visible = FALSE,
+                       name = paste0('v = ',step),
+                       x=x,
+                       y = U(x,r[[step]]),
+                       y3k = U(3000,r[[step]]),
+                       x3k = 3000,
+                       y4k = U(4000,r[[step]]),
+                       x4k = 4000)
+}
+aval[3][[1]]$visible = TRUE
+
+steps <- list()
+fig <- plot_ly()
+for (i in 1:7) {
+  fig <- add_lines(fig, x=aval[i][[1]]$x, y=aval[i][[1]]$y,
+                   visible = aval[i][[1]]$visible,
+                   name = aval[i][[1]]$name, type = 'scatter',
+                   mode = 'lines', #hoverinfo = 'name',
+                   line = list(color = 'red'), showlegend = FALSE) %>%
+    
+   
+    add_segments(x = aval[i][[1]]$x3k, xend = aval[i][[1]]$x3k, y = 0, yend = aval[i][[1]]$y3k,
+                 visible = aval[i][[1]]$visible,name = aval[i][[1]]$name,showlegend = FALSE,line = list(color = 'black')) %>%
+  
+    add_segments(x = 0, xend = aval[i][[1]]$x3k, y = aval[i][[1]]$y3k, yend = aval[i][[1]]$y3k,
+               visible = aval[i][[1]]$visible,name = aval[i][[1]]$name,showlegend = FALSE,line =list(color = 'black')) %>%
+  
+  add_segments(x = aval[i][[1]]$x4k, xend = aval[i][[1]]$x4k, y = 0, yend = aval[i][[1]]$y4k,
+               visible = aval[i][[1]]$visible,name = aval[i][[1]]$name,showlegend = FALSE,line = list(color = 'black')) %>%
+    
+    add_segments(x = 0, xend = aval[i][[1]]$x4k, y = aval[i][[1]]$y4k, yend = aval[i][[1]]$y4k,
+                 visible = aval[i][[1]]$visible,name = aval[i][[1]]$name,showlegend = FALSE,line = list(color = 'black'))
+    
+  step <- list(args = list('visible', rep(FALSE, length(aval)*5)),
+               method = 'restyle')
+  step$args[[2]][(5*i-4):(5*i)] = TRUE  
+
+  steps[[i]] = step
+}
+
+fig <- fig %>% layout(sliders = list(list(active=3,
+                                          currentvalue = list(prefix = "Risk aversion: "),
+                                          steps = steps)),yaxis = list( title = "Subjective value",
+                                            range = c(0, 6000), 
+                                            autorange = FALSE),xaxis = list( title = "Actual value"),height=450, width=450)
+
+htmlwidgets::saveWidget(fig,paste0("fig.html"))
+
+
+```
+Economists long ago replaced expected value with expected utility. Utility can be thought of as the subjective value of an outcome, and is some transformation u(a) of the objective amount. 
+
+<iframe src="fig.html" width="100%" height="100%" id="igraph" scrolling="no" seamless="seamless" frameBorder="0"> </iframe>
+
+
+
